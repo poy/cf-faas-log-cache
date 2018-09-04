@@ -13,6 +13,7 @@ import (
 	"github.com/apoydence/cf-faas-log-cache/internal/promql"
 	"github.com/apoydence/cf-faas-log-cache/internal/state"
 	"github.com/apoydence/cf-faas-log-cache/internal/web"
+	pkgpromql "github.com/apoydence/cf-faas-log-cache/pkg/promql"
 	gocapi "github.com/apoydence/go-capi"
 )
 
@@ -30,8 +31,11 @@ func main() {
 		http.DefaultClient,
 	)
 
-	logCacheClient := promql.NewClient(
+	sanitizer := pkgpromql.NewSanitizer(capiClient)
+
+	logCacheClient := pkgpromql.NewClient(
 		cfg.VcapApplication.LogCacheAddr,
+		sanitizer,
 		http.DefaultClient,
 	)
 

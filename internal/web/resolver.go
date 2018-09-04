@@ -21,7 +21,7 @@ type Resolver struct {
 type Query struct {
 	Query   string `json:"query"`
 	Path    string `json:"path"`
-	Context string `json:"context"`
+	Context string `json:"context,omitempty"`
 }
 
 type StateSaver interface {

@@ -1,14 +1,16 @@
 package promql
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"strings"
 	"time"
 
+	"github.com/apoydence/cf-faas-log-cache"
 	"github.com/apoydence/cf-faas-log-cache/internal/web"
 )
 
@@ -23,7 +25,7 @@ type PromQLClient interface {
 	PromQL(
 		ctx context.Context,
 		query string,
-	) (bool, error)
+	) (*faaspromql.QueryResult, error)
 }
 
 type Doer interface {
@@ -48,17 +50,30 @@ func (r *Reader) Tick() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	hasData, err := r.c.PromQL(ctx, r.q.Query)
+	result, err := r.c.PromQL(ctx, r.q.Query)
 	if err != nil {
 		r.log.Printf("failed to make PromQL query: %s", err)
 		return
 	}
 
-	if !hasData {
+	if len(result.Data.Result) == 0 {
 		return
 	}
 
-	req, err := http.NewRequest("POST", r.q.Path, strings.NewReader(r.q.Context))
+	for _, rr := range result.Data.Result {
+		data, err := json.Marshal(rr)
+		if err != nil {
+			r.log.Panicf("failed to marshal response: %s", err)
+		}
+		result.Data.RawResult = append(result.Data.RawResult, json.RawMessage(data))
+	}
+	result.Context = r.q.Context
+	data, err := json.Marshal(result)
+	if err != nil {
+		r.log.Panicf("failed to marshal response: %s", err)
+	}
+
+	req, err := http.NewRequest("POST", r.q.Path, bytes.NewReader(data))
 	if err != nil {
 		r.log.Panicf("failed to parse request: %s", err)
 	}
@@ -80,5 +95,5 @@ func (r *Reader) Tick() {
 		return
 	}
 
-	r.log.Print("successfully made POST")
+	r.log.Println("successfully made POST")
 }

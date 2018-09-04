@@ -52,7 +52,9 @@ func TestStateSaver(t *testing.T) {
 		Expect(t, ok).To(BeTrue())
 		Expect(t, t.spyCapiClient.setEnvCtx.Err()).To(Not(BeNil()))
 		Expect(t, t.spyCapiClient.setEnvAppGuid).To(Equal("some-guid"))
-		Expect(t, t.spyCapiClient.setEnvVars["QUERIES"]).To(MatchJSON(`{"queries":[{"query":"some-query-1","path":"some-path-1"},{"query":"some-query-2","path":"some-path-2"}]}`))
+		Expect(t, t.spyCapiClient.setEnvVars["QUERIES"]).To(
+			MatchJSON(`{"queries":[{"query":"some-query-1","path":"some-path-1"},{"query":"some-query-2","path":"some-path-2"}]}`),
+		)
 	})
 
 	o.Spec("it returns an error if saving the env fails", func(t TS) {

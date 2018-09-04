@@ -3,12 +3,14 @@ package promql_test
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"testing"
 
+	faaspromql "github.com/apoydence/cf-faas-log-cache"
 	"github.com/apoydence/cf-faas-log-cache/internal/promql"
 	"github.com/apoydence/cf-faas-log-cache/internal/web"
 	"github.com/apoydence/onpar"
@@ -40,7 +42,14 @@ func TestReader(t *testing.T) {
 	})
 
 	o.Spec("it POSTS results for a non-empty result", func(t TR) {
-		t.spyPromQLClient.hasData = true
+		expectedResult := &faaspromql.QueryResult{
+			Status: "some-status",
+			Data: faaspromql.RawResult{
+				Result: []interface{}{1, 2},
+			},
+		}
+
+		t.spyPromQLClient.result = expectedResult
 		t.r.Tick()
 
 		Expect(t, t.spyPromQLClient.ctx).To(Not(BeNil()))
@@ -53,12 +62,20 @@ func TestReader(t *testing.T) {
 		Expect(t, t.spyDoer.req.URL.String()).To(Equal("http://some.url/some-path"))
 		Expect(t, t.spyDoer.req.Method).To(Equal("POST"))
 
-		data, _ := ioutil.ReadAll(t.spyDoer.req.Body)
-		Expect(t, string(data)).To(Equal("some-context"))
+		expectedResult.Context = "some-context"
+		data, err := json.Marshal(expectedResult)
+		Expect(t, err).To(BeNil())
+
+		r, err := ioutil.ReadAll(t.spyDoer.req.Body)
+		Expect(t, err).To(BeNil())
+
+		Expect(t, r).To(MatchJSON(data))
 	})
 
 	o.Spec("it does not POST for empty results", func(t TR) {
-		t.spyPromQLClient.hasData = false
+		t.spyPromQLClient.result = &faaspromql.QueryResult{
+			Data: faaspromql.RawResult{},
+		}
 		t.r.Tick()
 		Expect(t, t.spyPromQLClient.ctx).To(Not(BeNil()))
 		Expect(t, t.spyDoer.req).To(BeNil())
@@ -66,7 +83,11 @@ func TestReader(t *testing.T) {
 
 	o.Spec("it does not POST for an error", func(t TR) {
 		t.spyPromQLClient.err = errors.New("some-error")
-		t.spyPromQLClient.hasData = true
+		t.spyPromQLClient.result = &faaspromql.QueryResult{
+			Data: faaspromql.RawResult{
+				Result: []interface{}{1, 2},
+			},
+		}
 		t.r.Tick()
 		Expect(t, t.spyPromQLClient.ctx).To(Not(BeNil()))
 		Expect(t, t.spyDoer.req).To(BeNil())
@@ -74,21 +95,21 @@ func TestReader(t *testing.T) {
 }
 
 type spyPromQLClient struct {
-	ctx     context.Context
-	query   string
-	hasData bool
-	err     error
+	ctx    context.Context
+	query  string
+	result *faaspromql.QueryResult
+	err    error
 }
 
 func newSpyPromQLClient() *spyPromQLClient {
 	return &spyPromQLClient{}
 }
 
-func (s *spyPromQLClient) PromQL(ctx context.Context, query string) (bool, error) {
+func (s *spyPromQLClient) PromQL(ctx context.Context, query string) (*faaspromql.QueryResult, error) {
 	s.ctx = ctx
 	s.query = query
 
-	return s.hasData, s.err
+	return s.result, s.err
 }
 
 type spyDoer struct {
