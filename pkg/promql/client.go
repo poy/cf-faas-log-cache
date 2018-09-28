@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/apoydence/cf-faas-log-cache"
@@ -33,19 +34,53 @@ func NewClient(addr string, s AppNameSanitizer, d Doer) *Client {
 	}
 }
 
+func (c *Client) PromQLRange(
+	ctx context.Context,
+	query string,
+	start time.Time,
+	end time.Time,
+	step time.Duration,
+) (*faaspromql.QueryResult, error) {
+	return c.promql(ctx, query, true, start, end, step)
+}
+
 func (c *Client) PromQL(ctx context.Context, query string) (*faaspromql.QueryResult, error) {
+	return c.promql(ctx, query, false, time.Time{}, time.Time{}, 0)
+}
+
+func (c *Client) promql(
+	ctx context.Context,
+	query string,
+	isRange bool,
+	start time.Time,
+	end time.Time,
+	step time.Duration,
+) (*faaspromql.QueryResult, error) {
+
 	sctx, _ := context.WithTimeout(ctx, 5*time.Second)
 	query, err := c.s.Sanitize(sctx, query)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodGet, c.addr+"/api/v1/query", nil)
+	addr := c.addr + "/api/v1/query"
+	if isRange {
+		addr += "_range"
+	}
+
+	req, err := http.NewRequest(http.MethodGet, addr, nil)
 	if err != nil {
 		return nil, err
 	}
 	v := req.URL.Query()
 	v.Set("query", query)
+
+	if isRange {
+		v.Set("start", strconv.FormatInt(start.UnixNano(), 10))
+		v.Set("end", strconv.FormatInt(end.UnixNano(), 10))
+		v.Set("step", step.String())
+	}
+
 	req.URL.RawQuery = v.Encode()
 
 	rctx, _ := context.WithTimeout(ctx, 5*time.Second)
