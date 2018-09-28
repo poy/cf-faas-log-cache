@@ -49,10 +49,11 @@ func TestSanitizer(t *testing.T) {
 		Expect(t, err).To(Not(BeNil()))
 	})
 
-	o.Spec("it returns an error if the fetcher fails", func(t TS) {
+	o.Spec("it returns the query as is if the fetcher fails", func(t TS) {
 		t.spyGuidFetcher.err = errors.New("some-error")
-		_, err := t.s.Sanitize(context.Background(), `metric{source_id="s"} / metric{source_id="m"}`)
-		Expect(t, err).To(Not(BeNil()))
+		result, err := t.s.Sanitize(context.Background(), `metric{source_id="s"} / metric{source_id="m"}`)
+		Expect(t, err).To(BeNil())
+		Expect(t, result).To(Equal(`metric{source_id="s"} / metric{source_id="m"}`))
 	})
 }
 
