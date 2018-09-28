@@ -6,7 +6,6 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/apoydence/cf-faas-log-cache"
@@ -76,8 +75,8 @@ func (c *Client) promql(
 	v.Set("query", query)
 
 	if isRange {
-		v.Set("start", strconv.FormatInt(start.UnixNano(), 10))
-		v.Set("end", strconv.FormatInt(end.UnixNano(), 10))
+		v.Set("start", fmt.Sprint(start.Unix()))
+		v.Set("end", fmt.Sprint(end.Unix()))
 		v.Set("step", step.String())
 	}
 

@@ -30,7 +30,7 @@ func (s *Sanitizer) Sanitize(ctx context.Context, query string) (string, error) 
 	for _, name := range names {
 		guid, err := s.f.GetAppGuid(ctx, name)
 		if err != nil {
-			log.Println("failed to resolve %s to guid... just using %s: %s", name, name, err)
+			log.Printf("failed to resolve %s to guid... just using %s: %s", name, name, err)
 			guid = name
 		}
 		m[name] = guid
