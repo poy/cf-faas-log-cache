@@ -3,10 +3,10 @@ package faaspromql_test
 import (
 	"testing"
 
-	faaspromql "github.com/apoydence/cf-faas-log-cache"
-	"github.com/apoydence/onpar"
-	. "github.com/apoydence/onpar/expect"
-	. "github.com/apoydence/onpar/matchers"
+	faaspromql "github.com/poy/cf-faas-log-cache"
+	"github.com/poy/onpar"
+	. "github.com/poy/onpar/expect"
+	. "github.com/poy/onpar/matchers"
 )
 
 func TestPromQLUnmarshal(t *testing.T) {

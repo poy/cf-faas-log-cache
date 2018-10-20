@@ -10,11 +10,11 @@ import (
 	"time"
 
 	envstruct "code.cloudfoundry.org/go-envstruct"
-	"github.com/apoydence/cf-faas-log-cache/internal/promql"
-	"github.com/apoydence/cf-faas-log-cache/internal/state"
-	"github.com/apoydence/cf-faas-log-cache/internal/web"
-	pkgpromql "github.com/apoydence/cf-faas-log-cache/pkg/promql"
-	gocapi "github.com/apoydence/go-capi"
+	"github.com/poy/cf-faas-log-cache/internal/promql"
+	"github.com/poy/cf-faas-log-cache/internal/state"
+	"github.com/poy/cf-faas-log-cache/internal/web"
+	pkgpromql "github.com/poy/cf-faas-log-cache/pkg/promql"
+	gocapi "github.com/poy/go-capi"
 )
 
 func main() {

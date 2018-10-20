@@ -10,8 +10,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/apoydence/cf-faas-log-cache"
-	"github.com/apoydence/cf-faas-log-cache/internal/web"
+	"github.com/poy/cf-faas-log-cache"
+	"github.com/poy/cf-faas-log-cache/internal/web"
 )
 
 type Reader struct {

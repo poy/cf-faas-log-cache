@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/apoydence/cf-faas-log-cache/pkg/promql"
+	"github.com/poy/cf-faas-log-cache/pkg/promql"
 )
 
 func TestPromQLParse(t *testing.T) {

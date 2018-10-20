@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/apoydence/cf-faas-log-cache"
+	"github.com/poy/cf-faas-log-cache"
 )
 
 type Client struct {

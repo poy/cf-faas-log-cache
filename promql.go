@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
-	faas "github.com/apoydence/cf-faas"
+	faas "github.com/poy/cf-faas"
 )
 
 type Handler interface {
